@@ -6,7 +6,7 @@ function byte_arrayseg_footprint(a: Array<Byte>, i: Int, j: Int)
 }
 
 predicate byte_arrayseg(a: Array<Byte>, i: Int, j: Int)(FP: Set<ArrayCell<Byte>>) {
-  0 <= i && i <= j && j <= a.length && 
+  0 <= i && i <= j && j <= a.length && a.length <= 65535 && //FIXME hack while we improve the BV backend
   FP == byte_arrayseg_footprint(a, i, j)
 }
 
