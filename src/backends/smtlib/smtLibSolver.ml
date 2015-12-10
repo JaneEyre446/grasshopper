@@ -536,12 +536,12 @@ let smtlib_symbol_of_grass_symbol_bv solver_info sym = match sym with
   | Minus -> failwith "bitvector theory does not have subtraction."
   | UMinus -> SmtLibSyntax.BvNeg
   | Mult -> SmtLibSyntax.BvMul
-  | Div -> SmtLibSyntax.BvUdiv
+  | Div -> SmtLibSyntax.BvSdiv
   | Eq -> SmtLibSyntax.Eq
-  | LtEq -> failwith "bitvector theory does not have '<='."
-  | GtEq -> failwith "bitvector theory does not have '>='."
-  | Lt -> SmtLibSyntax.BvUlt
-  | Gt -> failwith "bitvector theory does not have '>'."
+  | LtEq -> SmtLibSyntax.BvSle
+  | GtEq -> SmtLibSyntax.BvSge
+  | Lt -> SmtLibSyntax.BvSlt
+  | Gt -> SmtLibSyntax.BvSgt
   | BitAnd -> SmtLibSyntax.BvAnd
   | BitOr -> SmtLibSyntax.BvOr
   | BitNot -> SmtLibSyntax.BvNot
