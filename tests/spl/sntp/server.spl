@@ -73,17 +73,27 @@ procedure server(host: Array<Byte>)
   var flags := 0;
   var fd := gopen(host, flags);
 
+  //check the FD is valid
+  if (fd == -1) {
+      return;
+  }
+
   var buffer := new Array<Byte>(12);
   var temp := gread(fd, buffer);
 
   if( checkPacket(buffer) != 0 ){
-    temp := gwrite(fd, constructPacket(buffer));
+    var packet := constructPacket(buffer);
+    temp := gwrite(fd, packet);
+    free(packet);
   }
+  free(buffer);
+  temp := gclose(fd);
 }
 
 procedure Main(args: Array<Byte>)
   returns (res: Int)
   requires byte_array(args)
+  ensures byte_array(args)
 {
   server(args);
   res := 0; //got to return something?
