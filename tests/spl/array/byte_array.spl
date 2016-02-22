@@ -1,3 +1,5 @@
+//#IFNDEF H_BYTE_ARRAY
+//#DEFINE H_BYTE_ARRAY
 function byte_arrayseg_footprint(a: Array<Byte>, i: Int, j: Int)
   returns (FP: Set<ArrayCell<Byte>>)
 {
@@ -14,3 +16,5 @@ predicate byte_array(a: Array<Byte>)(FP1: Set<Array<Byte>>, FP2: Set<ArrayCell<B
   FP1 == Set(a) &&
   byte_arrayseg(a, 0, a.length, FP2)
 }
+
+//#ENDIF
