@@ -91,7 +91,7 @@ procedure handleAuth(cmdFd: Int)
   var pass := new Array<Byte>(15);
   pass := "PASS anonymous";
   var isOkay := false;
-  if (pass == sentPassword) {
+  if (strcmp(pass, sentPassword) == 0) {
     isOkay := true;
   }
   free(sentPassword);
@@ -322,15 +322,15 @@ procedure server() returns (res:Int)
     return -1;
   }
 
-  //if handleAuth fails, abort.
-  var authenticated := handleAuth(cmdFd);
-  if (!authenticated){
-    return -1;
-  }
-
   var dataFd := recvDataConnection(cmdFd);
   if (dataFd <= -1) {
     var closed := gclose(cmdFd);
+    return -1;
+  }
+
+  //if handleAuth fails, abort.
+  var authenticated := handleAuth(cmdFd);
+  if (!authenticated){
     return -1;
   }
 

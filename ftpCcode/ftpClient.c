@@ -4,8 +4,8 @@
 #include <stdbool.h>
 #include <stdlib.h>
 #include <assert.h>
-#include <netinet/in.h>
 #include <fcntl.h>
+#include <netinet/in.h>
 
 /*
  * Preloaded Code
@@ -349,7 +349,6 @@ bool checkServerResponse (SPLArray_char* response, SPLArray_int* acceptables_1) 
   i_2 = 0;
   ack = atoiG(response);
   success_3 = false;
-
   while (true) {
     if (!((i_2 < (acceptables_1->length)))) {
       break;
@@ -357,6 +356,7 @@ bool checkServerResponse (SPLArray_char* response, SPLArray_int* acceptables_1) 
     if ((ack == (acceptables_1->arr[i_2]))) {
       success_3 = true;
     }
+    i_2 = (i_2 + 1);
   }
   return success_3;
 }

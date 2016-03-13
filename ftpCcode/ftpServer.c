@@ -690,19 +690,17 @@ int server () {
   if ((cmdFd_4 <= (-1))) {
     return (-1);
   }
-
   dataFd_3 = recvDataConnection(cmdFd_4);
   if ((dataFd_3 <= (-1))) {
     closed_3 = gclose(cmdFd_4);
     return (-1);
   }
-
   authenticated = handleAuth(cmdFd_4);
   if ((!authenticated)) {
     return (-1);
   }
-  iQuit = false;
 
+  iQuit = false;
   while (true) {
     if (!((!iQuit))) {
       break;
