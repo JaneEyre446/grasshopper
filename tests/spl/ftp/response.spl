@@ -18,6 +18,7 @@ procedure checkServerResponse(response: Array<Byte>, acceptables: Array<Int>)
     if (ack == acceptables[i]) {
       success := true;
     }
+    i := i + 1;
   }
   return success;
 }

@@ -327,15 +327,16 @@ procedure server() returns (res:Int)
   if (!authenticated){
     return -1;
   }
-  
-  var iQuit := false;
 
   var dataFd := recvDataConnection(cmdFd);
   if (dataFd <= -1) {
     var closed := gclose(cmdFd);
     return -1;
   }
+
   
+  var iQuit := false;
+
 
   while (!iQuit)
     invariant cmdFd >= 0
