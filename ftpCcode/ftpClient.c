@@ -168,9 +168,7 @@ SPLArray_char* askFilename () {
   (text->arr[17]) = ((char) 109);
   (text->arr[18]) = ((char) 101);
   (text->arr[19]) = ((char) 58);
-  (text->arr[20]) = ((char) 92);
-  (text->arr[21]) = ((char) 110);
-  (text->arr[22]) = ((char) 0);
+  (text->arr[20]) = ((char) 0);
   written = gputs(text);
   tmp_2 = strlen(text);
   if ((!(written == tmp_2))) {
@@ -183,11 +181,12 @@ SPLArray_char* askFilename () {
   free(text);
   
   numChars = ggets(filename);
-  if (((numChars >= 100) || (numChars <= 0))) {
+  if (((numChars >= 100) || (numChars <= 1))) {
     free(filename);
     
     return NULL;
   }
+  (filename->arr[(numChars - 1)]) = ((char) 0);
   return filename;
 }
 
@@ -866,7 +865,7 @@ bool uploadFile (int cmdFd_3, int dataFD_2, SPLArray_char* filename_3) {
   if (((size_3 < 0) || (size_3 > 65535))) {
     return false;
   }
-  opened = gopen(filename_3, (O_CREAT | O_WRONLY));
+  opened = gopen(filename_3, (O_CREAT | O_RDONLY));
   if ((opened < 0)) {
     return false;
   }

@@ -153,7 +153,7 @@ int accept_incoming_file (int dataFd, SPLArray_char* filename) {
     
     return (-1);
   }
-  fileFd = gopen(filename, (O_CREAT | O_TRUNC));
+  fileFd = gopen(filename, ((O_CREAT | O_TRUNC) | O_WRONLY));
   if ((fileFd < 0)) {
     free(buffer);
     
@@ -264,8 +264,6 @@ int connectMeCommand (SPLArray_char* port) {
   bool bound;
   
   cmdAddr = get_address4(NULL, port);
-  free(port);
-  
   if ((cmdAddr == NULL)) {
     return (-1);
   }
@@ -526,7 +524,7 @@ int recvDataConnection (int cmdFd_2) {
   int closing;
   struct SocketAddressIP4* addr;
   
-  tmp_16 = newSPLArray_char( 10);
+  tmp_16 = newSPLArray_char( 11);
   resp = tmp_16;
   response_1 = tcp_recv(cmdFd_2, resp);
   fd_14 = create_socket(PF_INET, SOCK_STREAM, IPPROTO_TCP);
@@ -614,7 +612,7 @@ bool send_outgoing_file (int dataFd_2, SPLArray_char* filename_2) {
   int closed_2;
   SPLArray_char* buffer_7;
   
-  fileFd_1 = gopen(filename_2, O_CREAT);
+  fileFd_1 = gopen(filename_2, (O_CREAT | O_RDONLY));
   flag = false;
   if ((fileFd_1 < 0)) {
     flag = true;
@@ -688,11 +686,16 @@ int server () {
   (port_1->arr[2]) = ((char) 52);
   (port_1->arr[3]) = ((char) 52);
   (port_1->arr[4]) = ((char) 0);
-  cmdFd_4 = connectMeCommand(port_1);
-  if ((cmdFd_4 <= (-1))) {
-    return (-1);
+  cmdFd_4 = (-1);
+  while (true) {
+    if (!((cmdFd_4 < 0))) {
+      break;
+    }
+    cmdFd_4 = connectMeCommand(port_1);
   }
   dataFd_3 = recvDataConnection(cmdFd_4);
+  free(port_1);
+  
   if ((dataFd_3 <= (-1))) {
     closed_3 = gclose(cmdFd_4);
     return (-1);
