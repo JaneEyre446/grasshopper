@@ -103,9 +103,13 @@ struct SocketAddressIP6* get_address6 (SPLArray_char* node_1, SPLArray_char* ser
 int ggets (SPLArray_char* buffer_1);
 bool glisten (int fd_8, int backlog);
 int gopen (SPLArray_char* pathname_1, int flags);
-int gputs (SPLArray_char* buffer_2);
+bool gputs (SPLArray_char* buffer_2);
 int gread (int fd_10, SPLArray_char* buffer_3);
 int greadOffset (int fd_11, SPLArray_char* buffer_4, int offset);
+int gstrcat (SPLArray_char* str1_1, SPLArray_char* str2_1);
+int gstrcmp (SPLArray_char* s1, SPLArray_char* s2);
+SPLArray_char* gstrdup (SPLArray_char* str_2);
+int gstrlen (SPLArray_char* str_3);
 int gwrite (int fd_12, SPLArray_char* buffer_5);
 int gwrite2 (int fd_13, SPLArray_char* buffer_6, int size_1);
 bool handleAuth (int cmdFd_1);
@@ -120,11 +124,7 @@ bool send_outgoing_file (int dataFd_2, SPLArray_char* filename_2);
 int server ();
 bool size_help (int cmdFd_5, SPLArray_char* filename_4);
 bool store_help (int cmdFd_6, int dataFd_4, SPLArray_char* filename_5);
-int strcat (SPLArray_char* str1_1, SPLArray_char* str2_1);
-int strcmp (SPLArray_char* s1, SPLArray_char* s2);
 SPLArray_char* strconcat (SPLArray_char* str1_2, SPLArray_char* str2_2);
-SPLArray_char* strdup (SPLArray_char* str_2);
-int strlen (SPLArray_char* str_3);
 int tcp_recv (int fd_15, SPLArray_char* msg);
 int tcp_send (int fd_16, SPLArray_char* msg_1, int len);
 int udp_recv4 (int fd_17, SPLArray_char* msg_2, struct SocketAddressIP4* from);
@@ -336,15 +336,106 @@ bool equals (SPLArray_char* first, SPLArray_char* second) {
   return res_6;
 }
 
+int gstrcat (SPLArray_char* str1_1, SPLArray_char* str2_1) {
+  int res_7;
+  int l2;
+  int l1;
+  int i_11;
+  int copy_size;
+  
+  l1 = gstrlen(str1_1);
+  l2 = gstrlen(str2_1);
+  copy_size = ((str2_1->length) - l2);
+  if ((copy_size > l1)) {
+    copy_size = l1;
+  }
+  i_11 = 0;
+  while (true) {
+    if (!((i_11 < copy_size))) {
+      break;
+    }
+    (str2_1->arr[(i_11 + l2)]) = (str1_1->arr[i_11]);
+    i_11 = (i_11 + 1);
+  }
+  if (((l2 + copy_size) < (str2_1->length))) {
+    (str2_1->arr[(l2 + copy_size)]) = ((char) 0);
+  }
+  return copy_size;
+}
+
+int gstrcmp (SPLArray_char* s1, SPLArray_char* s2) {
+  int res_8;
+  int i_13;
+  
+  i_13 = 0;
+  while (true) {
+    if (!((((i_13 < (s1->length)) && (i_13 < (s2->length))) && ((s1->arr[i_13]) == (s2->arr[i_13]))))) {
+      break;
+    }
+    i_13 = (i_13 + 1);
+  }
+  if (((i_13 >= (s1->length)) && (i_13 >= (s2->length)))) {
+    return 0;
+  } else {
+    if ((i_13 >= (s1->length))) {
+      return (-1);
+    } else {
+      if ((i_13 >= (s2->length))) {
+        return 1;
+      } else {
+        if (((s1->arr[i_13]) < (s2->arr[i_13]))) {
+          return (-1);
+        } else {
+          return 1;
+        }
+      }
+    }
+  }
+  return res_8;
+}
+
+SPLArray_char* gstrdup (SPLArray_char* str_2) {
+  SPLArray_char* res_9;
+  SPLArray_char* tmp_3;
+  int i_15;
+  SPLArray_char* copy_1;
+  
+  tmp_3 = newSPLArray_char( (str_2->length));
+  copy_1 = tmp_3;
+  i_15 = 0;
+  while (true) {
+    if (!((i_15 < (str_2->length)))) {
+      break;
+    }
+    (copy_1->arr[i_15]) = (str_2->arr[i_15]);
+    i_15 = (i_15 + 1);
+  }
+  return copy_1;
+}
+
+int gstrlen (SPLArray_char* str_3) {
+  int res_10;
+  int i_16;
+  
+  i_16 = 0;
+  while (true) {
+    if (!(((i_16 < (str_3->length)) && (!((str_3->arr[i_16]) == ((char) 0)))))) {
+      break;
+    }
+    i_16 = (i_16 + 1);
+  }
+  return i_16;
+}
+
 bool handleAuth (int cmdFd_1) {
-  bool success_5;
+  bool success_6;
   SPLArray_char* userName;
-  SPLArray_char* tmp_8;
-  int tmp_7;
+  SPLArray_char* tmp_9;
+  int tmp_8;
+  SPLArray_char* tmp_7;
   SPLArray_char* tmp_6;
   SPLArray_char* tmp_5;
   SPLArray_char* tmp_4;
-  SPLArray_char* tmp_3;
   SPLArray_char* sentPassword;
   int sent_2;
   int sent_1;
@@ -355,13 +446,13 @@ bool handleAuth (int cmdFd_1) {
   SPLArray_char* pass;
   bool isOkay;
   
-  tmp_3 = newSPLArray_char( 12);
-  userName = tmp_3;
+  tmp_4 = newSPLArray_char( 12);
+  userName = tmp_4;
   recvUser = tcp_recv(cmdFd_1, userName);
   free(userName);
   
-  tmp_4 = newSPLArray_char( 4);
-  response = tmp_4;
+  tmp_5 = newSPLArray_char( 4);
+  response = tmp_5;
   (response->arr[0]) = ((char) 51);
   (response->arr[1]) = ((char) 51);
   (response->arr[2]) = ((char) 49);
@@ -369,11 +460,11 @@ bool handleAuth (int cmdFd_1) {
   sent = tcp_send(cmdFd_1, response, 4);
   free(response);
   
-  tmp_5 = newSPLArray_char( 15);
-  sentPassword = tmp_5;
-  recvpass = tcp_recv(cmdFd_1, sentPassword);
   tmp_6 = newSPLArray_char( 15);
-  pass = tmp_6;
+  sentPassword = tmp_6;
+  recvpass = tcp_recv(cmdFd_1, sentPassword);
+  tmp_7 = newSPLArray_char( 15);
+  pass = tmp_7;
   (pass->arr[0]) = ((char) 80);
   (pass->arr[1]) = ((char) 65);
   (pass->arr[2]) = ((char) 83);
@@ -390,16 +481,16 @@ bool handleAuth (int cmdFd_1) {
   (pass->arr[13]) = ((char) 115);
   (pass->arr[14]) = ((char) 0);
   isOkay = false;
-  tmp_7 = strcmp(pass, sentPassword);
-  if ((tmp_7 == 0)) {
+  tmp_8 = gstrcmp(pass, sentPassword);
+  if ((tmp_8 == 0)) {
     isOkay = true;
   }
   free(sentPassword);
   
   free(pass);
   
-  tmp_8 = newSPLArray_char( 4);
-  response = tmp_8;
+  tmp_9 = newSPLArray_char( 4);
+  response = tmp_9;
   if (isOkay) {
     (response->arr[0]) = ((char) 50);
     (response->arr[1]) = ((char) 51);
@@ -419,24 +510,24 @@ bool handleAuth (int cmdFd_1) {
     
     return false;
   }
-  return success_5;
+  return success_6;
 }
 
 bool is_quit (SPLArray_char* cmd) {
   bool is;
-  int tmp_10;
-  SPLArray_char* tmp_9;
+  int tmp_11;
+  SPLArray_char* tmp_10;
   SPLArray_char* quit;
   
-  tmp_9 = newSPLArray_char( 5);
-  quit = tmp_9;
+  tmp_10 = newSPLArray_char( 5);
+  quit = tmp_10;
   (quit->arr[0]) = ((char) 81);
   (quit->arr[1]) = ((char) 85);
   (quit->arr[2]) = ((char) 73);
   (quit->arr[3]) = ((char) 84);
   (quit->arr[4]) = ((char) 0);
-  tmp_10 = strcmp(cmd, quit);
-  if ((tmp_10 == 0)) {
+  tmp_11 = gstrcmp(cmd, quit);
+  if ((tmp_11 == 0)) {
     free(quit);
     
     return true;
@@ -450,19 +541,19 @@ bool is_quit (SPLArray_char* cmd) {
 
 bool is_retr (SPLArray_char* cmd_1) {
   bool is_1;
-  int tmp_12;
-  SPLArray_char* tmp_11;
+  int tmp_13;
+  SPLArray_char* tmp_12;
   SPLArray_char* retr;
   
-  tmp_11 = newSPLArray_char( 5);
-  retr = tmp_11;
+  tmp_12 = newSPLArray_char( 5);
+  retr = tmp_12;
   (retr->arr[0]) = ((char) 82);
   (retr->arr[1]) = ((char) 69);
   (retr->arr[2]) = ((char) 84);
   (retr->arr[3]) = ((char) 82);
   (retr->arr[4]) = ((char) 0);
-  tmp_12 = strcmp(cmd_1, retr);
-  if ((tmp_12 == 0)) {
+  tmp_13 = gstrcmp(cmd_1, retr);
+  if ((tmp_13 == 0)) {
     free(retr);
     
     return true;
@@ -476,19 +567,19 @@ bool is_retr (SPLArray_char* cmd_1) {
 
 bool is_size (SPLArray_char* cmd_2) {
   bool is_2;
-  int tmp_14;
-  SPLArray_char* tmp_13;
+  int tmp_15;
+  SPLArray_char* tmp_14;
   SPLArray_char* size_2;
   
-  tmp_13 = newSPLArray_char( 5);
-  size_2 = tmp_13;
+  tmp_14 = newSPLArray_char( 5);
+  size_2 = tmp_14;
   (size_2->arr[0]) = ((char) 83);
   (size_2->arr[1]) = ((char) 73);
   (size_2->arr[2]) = ((char) 90);
   (size_2->arr[3]) = ((char) 69);
   (size_2->arr[4]) = ((char) 0);
-  tmp_14 = strcmp(cmd_2, size_2);
-  if ((tmp_14 == 0)) {
+  tmp_15 = gstrcmp(cmd_2, size_2);
+  if ((tmp_15 == 0)) {
     free(size_2);
     
     return true;
@@ -502,19 +593,19 @@ bool is_size (SPLArray_char* cmd_2) {
 
 bool is_stor (SPLArray_char* cmd_3) {
   bool is_3;
-  int tmp_16;
-  SPLArray_char* tmp_15;
+  int tmp_17;
+  SPLArray_char* tmp_16;
   SPLArray_char* stor;
   
-  tmp_15 = newSPLArray_char( 5);
-  stor = tmp_15;
+  tmp_16 = newSPLArray_char( 5);
+  stor = tmp_16;
   (stor->arr[0]) = ((char) 83);
   (stor->arr[1]) = ((char) 84);
   (stor->arr[2]) = ((char) 79);
   (stor->arr[3]) = ((char) 82);
   (stor->arr[4]) = ((char) 0);
-  tmp_16 = strcmp(cmd_3, stor);
-  if ((tmp_16 == 0)) {
+  tmp_17 = gstrcmp(cmd_3, stor);
+  if ((tmp_17 == 0)) {
     free(stor);
     
     return true;
@@ -528,13 +619,13 @@ bool is_stor (SPLArray_char* cmd_3) {
 
 SPLArray_char* process_string (SPLArray_char* thing) {
   SPLArray_char* out;
-  SPLArray_char* tmp_17;
+  SPLArray_char* tmp_18;
   int copied;
   
-  tmp_17 = newSPLArray_char( ((thing->length) + 1));
-  out = tmp_17;
+  tmp_18 = newSPLArray_char( ((thing->length) + 1));
+  out = tmp_18;
   (out->arr[0]) = ((char) 0);
-  copied = strcat(thing, out);
+  copied = gstrcat(thing, out);
   free(thing);
   
   (out->arr[((out->length) - 1)]) = ((char) 0);
@@ -542,9 +633,9 @@ SPLArray_char* process_string (SPLArray_char* thing) {
 }
 
 int recvDataConnection (int cmdFd_2) {
-  int res_7;
-  bool tmp_19;
-  SPLArray_char* tmp_18;
+  int res_11;
+  bool tmp_20;
+  SPLArray_char* tmp_19;
   int response_1;
   SPLArray_char* resp;
   SPLArray_char* portArray;
@@ -552,8 +643,8 @@ int recvDataConnection (int cmdFd_2) {
   int closing;
   struct SocketAddressIP4* addr;
   
-  tmp_18 = newSPLArray_char( 11);
-  resp = tmp_18;
+  tmp_19 = newSPLArray_char( 11);
+  resp = tmp_19;
   response_1 = tcp_recv(cmdFd_2, resp);
   fd_14 = create_socket(PF_INET, SOCK_STREAM, IPPROTO_TCP);
   if ((fd_14 == (-1))) {
@@ -570,8 +661,8 @@ int recvDataConnection (int cmdFd_2) {
   if ((addr == NULL)) {
     return (-1);
   }
-  tmp_19 = connect4(fd_14, addr);
-  if (tmp_19) {
+  tmp_20 = connect4(fd_14, addr);
+  if (tmp_20) {
     free(addr);
     
     return fd_14;
@@ -581,22 +672,22 @@ int recvDataConnection (int cmdFd_2) {
     closing = gclose(fd_14);
     return (-1);
   }
-  return res_7;
+  return res_11;
 }
 
 bool retr_help (int cmdFd_3, int dataFd_1, SPLArray_char* filename_1) {
   bool fail;
+  SPLArray_char* tmp_23;
   SPLArray_char* tmp_22;
   SPLArray_char* tmp_21;
-  SPLArray_char* tmp_20;
   int sent_3;
   SPLArray_char* ok;
   SPLArray_char* notOk;
   SPLArray_char* goodPacket;
   bool done;
   
-  tmp_20 = newSPLArray_char( 4);
-  ok = tmp_20;
+  tmp_21 = newSPLArray_char( 4);
+  ok = tmp_21;
   (ok->arr[0]) = ((char) 49);
   (ok->arr[1]) = ((char) 53);
   (ok->arr[2]) = ((char) 48);
@@ -606,8 +697,8 @@ bool retr_help (int cmdFd_3, int dataFd_1, SPLArray_char* filename_1) {
   
   done = send_outgoing_file(dataFd_1, filename_1);
   if ((!done)) {
-    tmp_21 = newSPLArray_char( 4);
-    notOk = tmp_21;
+    tmp_22 = newSPLArray_char( 4);
+    notOk = tmp_22;
     (notOk->arr[0]) = ((char) 53);
     (notOk->arr[1]) = ((char) 53);
     (notOk->arr[2]) = ((char) 48);
@@ -617,8 +708,8 @@ bool retr_help (int cmdFd_3, int dataFd_1, SPLArray_char* filename_1) {
     
     return true;
   }
-  tmp_22 = newSPLArray_char( 4);
-  goodPacket = tmp_22;
+  tmp_23 = newSPLArray_char( 4);
+  goodPacket = tmp_23;
   (goodPacket->arr[0]) = ((char) 50);
   (goodPacket->arr[1]) = ((char) 53);
   (goodPacket->arr[2]) = ((char) 48);
@@ -630,8 +721,8 @@ bool retr_help (int cmdFd_3, int dataFd_1, SPLArray_char* filename_1) {
 }
 
 bool send_outgoing_file (int dataFd_2, SPLArray_char* filename_2) {
-  bool res_8;
-  SPLArray_char* tmp_23;
+  bool res_12;
+  SPLArray_char* tmp_24;
   int sent_4;
   int read;
   bool flag;
@@ -650,8 +741,8 @@ bool send_outgoing_file (int dataFd_2, SPLArray_char* filename_2) {
     fileS = 0;
     flag = true;
   }
-  tmp_23 = newSPLArray_char( fileS);
-  buffer_7 = tmp_23;
+  tmp_24 = newSPLArray_char( fileS);
+  buffer_7 = tmp_24;
   if ((!flag)) {
     read = gread(fileFd_1, buffer_7);
     closed_2 = gclose(fileFd_1);
@@ -672,19 +763,19 @@ bool send_outgoing_file (int dataFd_2, SPLArray_char* filename_2) {
   } else {
     return true;
   }
-  return res_8;
+  return res_12;
 }
 
 int server () {
-  int res_9;
+  int res_13;
   SPLArray_char* typeCom;
-  SPLArray_char* tmp_30;
+  SPLArray_char* tmp_31;
+  bool tmp_30;
   bool tmp_29;
   bool tmp_28;
   bool tmp_27;
-  bool tmp_26;
+  SPLArray_char* tmp_26;
   SPLArray_char* tmp_25;
-  SPLArray_char* tmp_24;
   bool temp_2;
   bool temp_1;
   bool temp;
@@ -703,8 +794,8 @@ int server () {
   SPLArray_char* badPacket;
   bool authenticated;
   
-  tmp_24 = newSPLArray_char( 5);
-  port_1 = tmp_24;
+  tmp_25 = newSPLArray_char( 5);
+  port_1 = tmp_25;
   (port_1->arr[0]) = ((char) 52);
   (port_1->arr[1]) = ((char) 52);
   (port_1->arr[2]) = ((char) 52);
@@ -734,16 +825,16 @@ int server () {
     if (!((!iQuit))) {
       break;
     }
-    tmp_25 = newSPLArray_char( 150);
-    request = tmp_25;
+    tmp_26 = newSPLArray_char( 150);
+    request = tmp_26;
     recd = tcp_recv(cmdFd_4, request);
     typeCom = copy_byte_slice(request, 0, 4);
     final = process_string(typeCom);
     filename_3 = copy_byte_slice(request, 5, ((request->length) - 1));
     free(request);
     
-    tmp_26 = is_stor(final);
-    if (tmp_26) {
+    tmp_27 = is_stor(final);
+    if (tmp_27) {
       temp = store_help(cmdFd_4, dataFd_3, filename_3);
       if (temp) {
         free(filename_3);
@@ -753,8 +844,8 @@ int server () {
       }
       iQuit = temp;
     } else {
-      tmp_27 = is_size(final);
-      if (tmp_27) {
+      tmp_28 = is_size(final);
+      if (tmp_28) {
         temp_1 = size_help(cmdFd_4, filename_3);
         if (temp_1) {
           free(filename_3);
@@ -764,8 +855,8 @@ int server () {
         }
         iQuit = temp_1;
       } else {
-        tmp_28 = is_retr(final);
-        if (tmp_28) {
+        tmp_29 = is_retr(final);
+        if (tmp_29) {
           temp_2 = retr_help(cmdFd_4, dataFd_3, filename_3);
           if (temp_2) {
             free(filename_3);
@@ -775,13 +866,13 @@ int server () {
           }
           iQuit = temp_2;
         } else {
-          tmp_29 = is_quit(final);
-          if (tmp_29) {
+          tmp_30 = is_quit(final);
+          if (tmp_30) {
             properQuit = true;
             iQuit = true;
           } else {
-            tmp_30 = newSPLArray_char( 4);
-            badPacket = tmp_30;
+            tmp_31 = newSPLArray_char( 4);
+            badPacket = tmp_31;
             (badPacket->arr[0]) = ((char) 53);
             (badPacket->arr[1]) = ((char) 48);
             (badPacket->arr[2]) = ((char) 48);
@@ -806,14 +897,14 @@ int server () {
   } else {
     return (-1);
   }
-  return res_9;
+  return res_13;
 }
 
 bool size_help (int cmdFd_5, SPLArray_char* filename_4) {
   bool fail_1;
+  SPLArray_char* tmp_34;
   SPLArray_char* tmp_33;
   SPLArray_char* tmp_32;
-  SPLArray_char* tmp_31;
   SPLArray_char* sizePacket;
   int sizeF;
   int sent_7;
@@ -824,8 +915,8 @@ bool size_help (int cmdFd_5, SPLArray_char* filename_4) {
   
   sizeF = fileSize(filename_4);
   if ((sizeF < 0)) {
-    tmp_31 = newSPLArray_char( 4);
-    badPacket_1 = tmp_31;
+    tmp_32 = newSPLArray_char( 4);
+    badPacket_1 = tmp_32;
     (badPacket_1->arr[0]) = ((char) 53);
     (badPacket_1->arr[1]) = ((char) 53);
     (badPacket_1->arr[2]) = ((char) 48);
@@ -835,17 +926,17 @@ bool size_help (int cmdFd_5, SPLArray_char* filename_4) {
     
     return true;
   }
-  tmp_32 = newSPLArray_char( 1);
-  sizePacket = tmp_32;
+  tmp_33 = newSPLArray_char( 1);
+  sizePacket = tmp_33;
   (sizePacket->arr[0]) = ((char) sizeF);
-  tmp_33 = newSPLArray_char( 6);
-  goodPacket_1 = tmp_33;
+  tmp_34 = newSPLArray_char( 6);
+  goodPacket_1 = tmp_34;
   (goodPacket_1->arr[0]) = ((char) 50);
   (goodPacket_1->arr[1]) = ((char) 49);
   (goodPacket_1->arr[2]) = ((char) 51);
   (goodPacket_1->arr[3]) = ((char) 32);
   (goodPacket_1->arr[4]) = ((char) 0);
-  finished = strcat(sizePacket, goodPacket_1);
+  finished = gstrcat(sizePacket, goodPacket_1);
   sent_7 = tcp_send(cmdFd_5, goodPacket_1, 6);
   free(sizePacket);
   
@@ -856,17 +947,17 @@ bool size_help (int cmdFd_5, SPLArray_char* filename_4) {
 
 bool store_help (int cmdFd_6, int dataFd_4, SPLArray_char* filename_5) {
   bool fail_2;
+  SPLArray_char* tmp_37;
   SPLArray_char* tmp_36;
   SPLArray_char* tmp_35;
-  SPLArray_char* tmp_34;
   int stored;
   int sent_8;
   SPLArray_char* ok_1;
   SPLArray_char* notOk_1;
   SPLArray_char* goodPacket_2;
   
-  tmp_34 = newSPLArray_char( 4);
-  ok_1 = tmp_34;
+  tmp_35 = newSPLArray_char( 4);
+  ok_1 = tmp_35;
   (ok_1->arr[0]) = ((char) 49);
   (ok_1->arr[1]) = ((char) 53);
   (ok_1->arr[2]) = ((char) 48);
@@ -876,8 +967,8 @@ bool store_help (int cmdFd_6, int dataFd_4, SPLArray_char* filename_5) {
   
   stored = accept_incoming_file(dataFd_4, filename_5);
   if ((stored < 0)) {
-    tmp_35 = newSPLArray_char( 4);
-    notOk_1 = tmp_35;
+    tmp_36 = newSPLArray_char( 4);
+    notOk_1 = tmp_36;
     (notOk_1->arr[0]) = ((char) 53);
     (notOk_1->arr[1]) = ((char) 53);
     (notOk_1->arr[2]) = ((char) 48);
@@ -887,8 +978,8 @@ bool store_help (int cmdFd_6, int dataFd_4, SPLArray_char* filename_5) {
     
     return true;
   }
-  tmp_36 = newSPLArray_char( 4);
-  goodPacket_2 = tmp_36;
+  tmp_37 = newSPLArray_char( 4);
+  goodPacket_2 = tmp_37;
   (goodPacket_2->arr[0]) = ((char) 50);
   (goodPacket_2->arr[1]) = ((char) 53);
   (goodPacket_2->arr[2]) = ((char) 48);
@@ -899,126 +990,35 @@ bool store_help (int cmdFd_6, int dataFd_4, SPLArray_char* filename_5) {
   return false;
 }
 
-int strcat (SPLArray_char* str1_1, SPLArray_char* str2_1) {
-  int res_10;
-  int l2;
-  int l1;
-  int i_13;
-  int copy_size;
-  
-  l1 = strlen(str1_1);
-  l2 = strlen(str2_1);
-  copy_size = ((str2_1->length) - l2);
-  if ((copy_size > l1)) {
-    copy_size = l1;
-  }
-  i_13 = 0;
-  while (true) {
-    if (!((i_13 < copy_size))) {
-      break;
-    }
-    (str2_1->arr[(i_13 + l2)]) = (str1_1->arr[i_13]);
-    i_13 = (i_13 + 1);
-  }
-  if (((l2 + copy_size) < (str2_1->length))) {
-    (str2_1->arr[(l2 + copy_size)]) = ((char) 0);
-  }
-  return copy_size;
-}
-
-int strcmp (SPLArray_char* s1, SPLArray_char* s2) {
-  int res_11;
-  int i_15;
-  
-  i_15 = 0;
-  while (true) {
-    if (!((((i_15 < (s1->length)) && (i_15 < (s2->length))) && ((s1->arr[i_15]) == (s2->arr[i_15]))))) {
-      break;
-    }
-    i_15 = (i_15 + 1);
-  }
-  if (((i_15 >= (s1->length)) && (i_15 >= (s2->length)))) {
-    return 0;
-  } else {
-    if ((i_15 >= (s1->length))) {
-      return (-1);
-    } else {
-      if ((i_15 >= (s2->length))) {
-        return 1;
-      } else {
-        if (((s1->arr[i_15]) < (s2->arr[i_15]))) {
-          return (-1);
-        } else {
-          return 1;
-        }
-      }
-    }
-  }
-  return res_11;
-}
-
 SPLArray_char* strconcat (SPLArray_char* str1_2, SPLArray_char* str2_2) {
-  SPLArray_char* res_12;
-  SPLArray_char* tmp_37;
+  SPLArray_char* res_14;
+  SPLArray_char* tmp_38;
   int l2_1;
   int l1_1;
-  int i_16;
-  SPLArray_char* copy_1;
-  
-  l1_1 = strlen(str1_2);
-  l2_1 = strlen(str2_2);
-  
-  tmp_37 = newSPLArray_char( (l1_1 + l2_1));
-  copy_1 = tmp_37;
-  i_16 = 0;
-  while (true) {
-    if (!((i_16 < l1_1))) {
-      break;
-    }
-    (copy_1->arr[i_16]) = (str1_2->arr[i_16]);
-    i_16 = (i_16 + 1);
-  }
-  while (true) {
-    if (!((i_16 < (l1_1 + l2_1)))) {
-      break;
-    }
-    (copy_1->arr[i_16]) = (str2_2->arr[(i_16 - l1_1)]);
-    i_16 = (i_16 + 1);
-  }
-  return copy_1;
-}
-
-SPLArray_char* strdup (SPLArray_char* str_2) {
-  SPLArray_char* res_13;
-  SPLArray_char* tmp_38;
-  int i_18;
+  int i_19;
   SPLArray_char* copy_2;
   
-  tmp_38 = newSPLArray_char( (str_2->length));
-  copy_2 = tmp_38;
-  i_18 = 0;
-  while (true) {
-    if (!((i_18 < (str_2->length)))) {
-      break;
-    }
-    (copy_2->arr[i_18]) = (str_2->arr[i_18]);
-    i_18 = (i_18 + 1);
-  }
-  return copy_2;
-}
-
-int strlen (SPLArray_char* str_3) {
-  int res_14;
-  int i_19;
+  l1_1 = gstrlen(str1_2);
+  l2_1 = gstrlen(str2_2);
   
+  tmp_38 = newSPLArray_char( (l1_1 + l2_1));
+  copy_2 = tmp_38;
   i_19 = 0;
   while (true) {
-    if (!(((i_19 < (str_3->length)) && (!((str_3->arr[i_19]) == ((char) 0)))))) {
+    if (!((i_19 < l1_1))) {
       break;
     }
+    (copy_2->arr[i_19]) = (str1_2->arr[i_19]);
     i_19 = (i_19 + 1);
   }
-  return i_19;
+  while (true) {
+    if (!((i_19 < (l1_1 + l2_1)))) {
+      break;
+    }
+    (copy_2->arr[i_19]) = (str2_2->arr[(i_19 - l1_1)]);
+    i_19 = (i_19 + 1);
+  }
+  return copy_2;
 }
 
 /*
