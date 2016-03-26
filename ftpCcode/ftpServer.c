@@ -6,8 +6,6 @@
 #include <assert.h>
 #include <fcntl.h>
 #include <netinet/in.h>
-
-
 /*
  * Preloaded Code
  */
