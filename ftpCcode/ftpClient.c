@@ -186,7 +186,6 @@ SPLArray_char* askFilename () {
     return NULL;
   }
   numChars = ggets(filename);
-  //  printf("numchars is %d\n", numChars);
   if (((numChars >= 100) || (numChars <= 1))) {
     free(filename);
     
