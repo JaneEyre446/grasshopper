@@ -4,8 +4,9 @@
 #include <stdbool.h>
 #include <stdlib.h>
 #include <assert.h>
-#include <fcntl.h>
 #include <netinet/in.h>
+#include <fcntl.h>
+
 /*
  * Preloaded Code
  */
@@ -90,7 +91,7 @@ bool bind6 (int fd_3, struct SocketAddressIP6* address_3);
 SPLArray_char* concat (SPLArray_char* str1, SPLArray_char* str2);
 bool connect4 (int fd_4, struct SocketAddressIP4* address_4);
 bool connect6 (int fd_5, struct SocketAddressIP6* address_5);
-int connectMeCommand (SPLArray_char* port);
+int connectMeCommand (int cmdFd, struct SocketAddressIP4* cmdAddr);
 SPLArray_char* copy_byte_slice (SPLArray_char* a, int start, int end);
 int create_socket (int inet_type, int socket_type, int protocol);
 bool equals (SPLArray_char* first, SPLArray_char* second);
@@ -254,40 +255,17 @@ SPLArray_char* concat (SPLArray_char* str1, SPLArray_char* str2) {
   return copy;
 }
 
-int connectMeCommand (SPLArray_char* port) {
+int connectMeCommand (int cmdFd, struct SocketAddressIP4* cmdAddr) {
   int res_5;
   bool listening;
   int connFd;
-  int cmdFd;
-  struct SocketAddressIP4* cmdAddr;
   int closed_1;
-  bool bound;
   
-  cmdAddr = get_address4(NULL, port);
-  if ((cmdAddr == NULL)) {
-    return (-1);
-  }
-  cmdFd = create_socket(PF_INET, SOCK_STREAM, IPPROTO_TCP);
-  if ((cmdFd == (-1))) {
-    free(cmdAddr);
-    
-    return (-1);
-  }
-  bound = bind4(cmdFd, cmdAddr);
-  if ((!bound)) {
-    free(cmdAddr);
-    
-    return (-1);
-  }
   listening = glisten(cmdFd, 10);
   if ((!listening)) {
-    free(cmdAddr);
-    
     return (-1);
   }
   connFd = accept4(cmdFd, cmdAddr);
-  free(cmdAddr);
-  
   closed_1 = gclose(cmdFd);
   return connFd;
 }
@@ -774,6 +752,7 @@ int server () {
   bool tmp_27;
   SPLArray_char* tmp_26;
   SPLArray_char* tmp_25;
+  int tempCmdFd;
   bool temp_2;
   bool temp_1;
   bool temp;
@@ -781,34 +760,57 @@ int server () {
   SPLArray_char* request;
   int recd;
   bool properQuit;
-  SPLArray_char* port_1;
+  SPLArray_char* port;
   bool iQuit;
   SPLArray_char* final;
   SPLArray_char* filename_3;
   int dataFd_3;
   int cmdFd_4;
+  struct SocketAddressIP4* cmdAddr_1;
   int closed_4;
   int closed_3;
+  bool bound;
   SPLArray_char* badPacket;
   bool authenticated;
   
   tmp_25 = newSPLArray_char( 5);
-  port_1 = tmp_25;
-  (port_1->arr[0]) = ((char) 52);
-  (port_1->arr[1]) = ((char) 52);
-  (port_1->arr[2]) = ((char) 52);
-  (port_1->arr[3]) = ((char) 52);
-  (port_1->arr[4]) = ((char) 0);
+  port = tmp_25;
+  (port->arr[0]) = ((char) 52);
+  (port->arr[1]) = ((char) 52);
+  (port->arr[2]) = ((char) 52);
+  (port->arr[3]) = ((char) 52);
+  (port->arr[4]) = ((char) 0);
   cmdFd_4 = (-1);
+  if (((port->length) > 65535)) {
+    return (-1);
+  }
+  cmdAddr_1 = get_address4(NULL, port);
+  free(port);
+  
+  if ((cmdAddr_1 == NULL)) {
+    return (-1);
+  }
+  tempCmdFd = create_socket(PF_INET, SOCK_STREAM, IPPROTO_TCP);
+  if ((tempCmdFd < 0)) {
+    free(cmdAddr_1);
+    
+    return (-1);
+  }
+  bound = bind4(tempCmdFd, cmdAddr_1);
+  if ((!bound)) {
+    free(cmdAddr_1);
+    
+    return (-1);
+  }
   while (true) {
     if (!((cmdFd_4 < 0))) {
       break;
     }
-    cmdFd_4 = connectMeCommand(port_1);
+    cmdFd_4 = connectMeCommand(tempCmdFd, cmdAddr_1);
   }
-  dataFd_3 = recvDataConnection(cmdFd_4);
-  free(port_1);
+  free(cmdAddr_1);
   
+  dataFd_3 = recvDataConnection(cmdFd_4);
   if ((dataFd_3 <= (-1))) {
     closed_3 = gclose(cmdFd_4);
     return (-1);
