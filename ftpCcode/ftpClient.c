@@ -191,7 +191,9 @@ SPLArray_char* askFilename () {
     
     return NULL;
   }
+
   (filename->arr[(numChars - 1)]) = ((char) 0);
+  printf("we have the filename: %s\n", filename->arr);
   return filename;
 }
 
@@ -376,6 +378,10 @@ int client (bool upload_1) {
   SPLArray_char* filename_1;
   int fd_4;
   int connectedDataFD;
+  int closed_3;
+  int closed_2;
+  int closed_1;
+  int closed;
   int closeFD;
   int closeConn;
   bool authenticated;
@@ -402,14 +408,19 @@ int client (bool upload_1) {
   free(port);
   
   if ((connectedDataFD == (-1))) {
+    closed = gclose(fd_4);
     return 3;
   }
   authenticated = authenticate(fd_4);
   if ((!authenticated)) {
+    closed_1 = gclose(fd_4);
+    closed_1 = gclose(connectedDataFD);
     return 4;
   }
   filename_1 = askFilename();
   if ((filename_1 == NULL)) {
+    closed_2 = gclose(fd_4);
+    closed_2 = gclose(connectedDataFD);
     return 5;
   }
   success_4 = false;
@@ -421,6 +432,8 @@ int client (bool upload_1) {
   free(filename_1);
   
   if ((!success_4)) {
+    closed_3 = gclose(fd_4);
+    closed_3 = gclose(connectedDataFD);
     return 6;
   }
   closeConn = gclose(connectedDataFD);
@@ -474,7 +487,6 @@ SPLArray_char* concat (SPLArray_char* str1, SPLArray_char* str2) {
 int connectTo (SPLArray_char* ip, SPLArray_char* port_1) {
   int fd_7;
   bool tmp_11;
-  int closing;
   struct SocketAddressIP4* addr;
   
   fd_7 = create_socket(PF_INET, SOCK_STREAM, IPPROTO_TCP);
@@ -493,7 +505,6 @@ int connectTo (SPLArray_char* ip, SPLArray_char* port_1) {
   } else {
     free(addr);
     
-    closing = gclose(fd_7);
     return (-1);
   }
   return fd_7;
@@ -648,6 +659,7 @@ bool downloadFile (int cmdFd_1, int dataFD, SPLArray_char* filename_2) {
     return false;
   }
   size = atoiFrom(sizeBuff, 4);
+  printf("size is %d\n", size);
   free(sizeBuff);
   
   if (((size <= 0) || (size > 65535))) {
@@ -655,6 +667,7 @@ bool downloadFile (int cmdFd_1, int dataFD, SPLArray_char* filename_2) {
   }
   tmp_20 = newSPLArray_char( size);
   buffer = tmp_20;
+  printf("buffer size is %d\n", buffer->length);
   tmp_21 = newSPLArray_char( cmdSize);
   recvMsg = tmp_21;
   (recvMsg->arr[0]) = ((char) 82);
@@ -708,12 +721,14 @@ bool downloadFile (int cmdFd_1, int dataFD, SPLArray_char* filename_2) {
     
     return false;
   }
+  printf("now we open\n");
   saveFD = gopen(filename_2, ((O_CREAT | O_WRONLY) | O_TRUNC));
   if ((saveFD < 0)) {
     free(buffer);
     
     return false;
   }
+  printf("yo we're going to write now.  Length is %d\n", buffer->length);
   written_1 = gwrite(saveFD, buffer);
   free(buffer);
   
@@ -956,6 +971,7 @@ bool uploadFile (int cmdFd_3, int dataFD_2, SPLArray_char* filename_3) {
   SPLArray_int* acceptThese_2;
   
   size_3 = fileSize(filename_3);
+  printf("retrieved size is %s\n", size_3);
   if (((size_3 < 0) || (size_3 > 65535))) {
     return false;
   }
