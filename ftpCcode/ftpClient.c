@@ -4,7 +4,6 @@
 #include <stdbool.h>
 #include <stdlib.h>
 #include <assert.h>
-#include <string.h>
 #include <fcntl.h>
 #include <netinet/in.h>
 
