@@ -4,6 +4,8 @@
 #include <stdbool.h>
 #include <stdlib.h>
 #include <assert.h>
+#include <fcntl.h>
+#include <netinet/in.h>
 
 /*
  * Preloaded Code
@@ -907,6 +909,7 @@ int server () {
   }
   iQuit = false;
   properQuit = false;
+  allo_size_2 = 65535;
   while (true) {
     if (!((!iQuit))) {
       break;
@@ -916,28 +919,36 @@ int server () {
     recd = tcp_recv(cmdFd_5, request);
     typeCom = copy_byte_slice(request, 0, 4);
     final = process_string(typeCom);
-    allo_size_2 = 65535;
     filename_3 = copy_byte_slice(request, 5, ((request->length) - 1));
     free(request);
     
-    tmp_32 = is_stor(final);
+    tmp_32 = is_allo(final);
     if (tmp_32) {
-      temp = store_help(cmdFd_5, dataFd_3, filename_3, allo_size_2);
-      if (temp) {
-        free(filename_3);
-        
+      allo_size_2 = allo_help(cmdFd_5, filename_3);
+      if (((allo_size_2 < 1) || (allo_size_2 > 65535))) {
+        allo_size_2 = 65535;
         free(final);
         
+        iQuit = true;
       }
-      iQuit = temp;
     } else {
-      tmp_33 = is_allo(final);
+      tmp_33 = is_stor(final);
       if (tmp_33) {
-        allo_size_2 = allo_help(cmdFd_5, filename_3);
-        if ((allo_size_2 < 0)) {
+        if (((allo_size_2 < 1) || (allo_size_2 > 65535))) {
+          free(filename_3);
+          
           free(final);
           
           iQuit = true;
+        } else {
+          temp = store_help(cmdFd_5, dataFd_3, filename_3, allo_size_2);
+          if (temp) {
+            free(filename_3);
+            
+            free(final);
+            
+          }
+          iQuit = temp;
         }
       } else {
         tmp_34 = is_size(final);
