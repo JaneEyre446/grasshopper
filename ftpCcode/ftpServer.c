@@ -118,6 +118,7 @@ bool is_quit (SPLArray_char* cmd_1);
 bool is_retr (SPLArray_char* cmd_2);
 bool is_size (SPLArray_char* cmd_3);
 bool is_stor (SPLArray_char* cmd_4);
+char makeStrFromInt (int myInt);
 SPLArray_char* process_string (SPLArray_char* thing);
 int recvDataConnection (int cmdFd_3);
 bool retr_help (int cmdFd_4, int dataFd_1, SPLArray_char* filename_1);
@@ -772,7 +773,7 @@ bool retr_help (int cmdFd_4, int dataFd_1, SPLArray_char* filename_1) {
   sent_6 = tcp_send(cmdFd_4, goodPacket_1, 4);
   free(goodPacket_1);
   
-  return true;
+  return false;
 }
 
 bool send_outgoing_file (int dataFd_2, SPLArray_char* filename_2) {
@@ -1010,7 +1011,8 @@ int server () {
 
 bool size_help (int cmdFd_6, SPLArray_char* filename_4) {
   bool fail_1;
-  SPLArray_char* tmp_40;
+  SPLArray_char* tmp_41;
+  char tmp_40;
   SPLArray_char* tmp_39;
   SPLArray_char* tmp_38;
   SPLArray_char* sizePacket;
@@ -1034,11 +1036,13 @@ bool size_help (int cmdFd_6, SPLArray_char* filename_4) {
     
     return true;
   }
-  tmp_39 = newSPLArray_char( 1);
+  tmp_39 = newSPLArray_char( 2);
   sizePacket = tmp_39;
-  (sizePacket->arr[0]) = ((char) sizeF);
-  tmp_40 = newSPLArray_char( 6);
-  goodPacket_2 = tmp_40;
+  tmp_40 = makeStrFromInt(sizeF);
+  (sizePacket->arr[0]) = tmp_40;
+  (sizePacket->arr[1]) = ((char) 0);
+  tmp_41 = newSPLArray_char( 6);
+  goodPacket_2 = tmp_41;
   (goodPacket_2->arr[0]) = ((char) 50);
   (goodPacket_2->arr[1]) = ((char) 49);
   (goodPacket_2->arr[2]) = ((char) 51);
@@ -1055,17 +1059,17 @@ bool size_help (int cmdFd_6, SPLArray_char* filename_4) {
 
 bool store_help (int cmdFd_7, int dataFd_4, SPLArray_char* filename_5, int allo_size_3) {
   bool fail_2;
+  SPLArray_char* tmp_44;
   SPLArray_char* tmp_43;
   SPLArray_char* tmp_42;
-  SPLArray_char* tmp_41;
   int stored;
   int sent_11;
   SPLArray_char* ok_1;
   SPLArray_char* notOk_1;
   SPLArray_char* goodPacket_3;
   
-  tmp_41 = newSPLArray_char( 4);
-  ok_1 = tmp_41;
+  tmp_42 = newSPLArray_char( 4);
+  ok_1 = tmp_42;
   (ok_1->arr[0]) = ((char) 49);
   (ok_1->arr[1]) = ((char) 53);
   (ok_1->arr[2]) = ((char) 48);
@@ -1075,8 +1079,8 @@ bool store_help (int cmdFd_7, int dataFd_4, SPLArray_char* filename_5, int allo_
   
   stored = accept_incoming_file(dataFd_4, filename_5, allo_size_3);
   if ((stored < 0)) {
-    tmp_42 = newSPLArray_char( 4);
-    notOk_1 = tmp_42;
+    tmp_43 = newSPLArray_char( 4);
+    notOk_1 = tmp_43;
     (notOk_1->arr[0]) = ((char) 53);
     (notOk_1->arr[1]) = ((char) 53);
     (notOk_1->arr[2]) = ((char) 48);
@@ -1086,8 +1090,8 @@ bool store_help (int cmdFd_7, int dataFd_4, SPLArray_char* filename_5, int allo_
     
     return true;
   }
-  tmp_43 = newSPLArray_char( 4);
-  goodPacket_3 = tmp_43;
+  tmp_44 = newSPLArray_char( 4);
+  goodPacket_3 = tmp_44;
   (goodPacket_3->arr[0]) = ((char) 50);
   (goodPacket_3->arr[1]) = ((char) 53);
   (goodPacket_3->arr[2]) = ((char) 48);
@@ -1100,7 +1104,7 @@ bool store_help (int cmdFd_7, int dataFd_4, SPLArray_char* filename_5, int allo_
 
 SPLArray_char* strconcat (SPLArray_char* str1_2, SPLArray_char* str2_2) {
   SPLArray_char* res_14;
-  SPLArray_char* tmp_44;
+  SPLArray_char* tmp_45;
   int l2_1;
   int l1_1;
   int i_19;
@@ -1109,8 +1113,8 @@ SPLArray_char* strconcat (SPLArray_char* str1_2, SPLArray_char* str2_2) {
   l1_1 = gstrlen(str1_2);
   l2_1 = gstrlen(str2_2);
   
-  tmp_44 = newSPLArray_char( (l1_1 + l2_1));
-  copy_2 = tmp_44;
+  tmp_45 = newSPLArray_char( (l1_1 + l2_1));
+  copy_2 = tmp_45;
   i_19 = 0;
   while (true) {
     if (!((i_19 < l1_1))) {

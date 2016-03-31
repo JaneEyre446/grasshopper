@@ -4,8 +4,8 @@
 #include <stdbool.h>
 #include <stdlib.h>
 #include <assert.h>
-#include <fcntl.h>
 #include <netinet/in.h>
+#include <fcntl.h>
 
 /*
  * Preloaded Code
