@@ -6,6 +6,7 @@
 #include <assert.h>
 #include <fcntl.h>
 #include <netinet/in.h>
+#include <string.h>
 
 /*
  * Preloaded Code
@@ -705,26 +706,30 @@ int recvDataConnection (int cmdFd_3) {
   fd_14 = create_socket(PF_INET, SOCK_STREAM, IPPROTO_TCP);
   if ((fd_14 == (-1))) {
     free(resp);
-    
+    printf("nope\n");
     return (-1);
   }
   portArray = copy_byte_slice(resp, 5, 10);
   free(resp);
+  printf("port array is %s\n", portArray->arr);
   
   addr = get_address4(NULL, portArray);
   free(portArray);
   
   if ((addr == NULL)) {
+    printf("bad addr\n");
     return (-1);
   }
+  printf("addr is %d\n", addr->sin4_addr);
+  printf("port is %d\n", addr->sin4_port);
   tmp_25 = connect4(fd_14, addr);
   if (tmp_25) {
     free(addr);
-    
+    printf("good conn\n");
     return fd_14;
   } else {
     free(addr);
-    
+    printf("didnotconnect\n");
     closing = gclose(fd_14);
     return (-1);
   }
@@ -867,6 +872,7 @@ int server () {
   (port->arr[4]) = ((char) 0);
   cmdFd_5 = (-1);
   if (((port->length) > 65535)) {
+    printf("port bad\n");
     return (-1);
   }
   cmdAddr_1 = get_address4(NULL, port);
@@ -888,21 +894,26 @@ int server () {
     closed_2 = gclose(tempCmdFd);
     return (-1);
   }
+  printf("we finished setup\n");
   while (true) {
     if (!((cmdFd_5 < 0))) {
       break;
     }
     cmdFd_5 = connectMeCommand(tempCmdFd, cmdAddr_1);
   }
+  printf("finished while loo[\n");
   closedTemp = gclose(tempCmdFd);
   free(cmdAddr_1);
   
   dataFd_3 = recvDataConnection(cmdFd_5);
+  printf("dataFD_3 is %d\n");
   if ((dataFd_3 <= (-1))) {
     closed_3 = gclose(cmdFd_5);
     return (-1);
   }
+  printf("auth time\n");
   authenticated = handleAuth(cmdFd_5);
+  printf("authenticated is %d\n", authenticated);
   if ((!authenticated)) {
     closed_4 = gclose(cmdFd_5);
     closed_4 = gclose(dataFd_3);
