@@ -4,8 +4,8 @@
 #include <stdbool.h>
 #include <stdlib.h>
 #include <assert.h>
-#include <netinet/in.h>
 #include <fcntl.h>
+#include <netinet/in.h>
 
 /*
  * Preloaded Code
@@ -313,6 +313,12 @@ struct SocketAddressIP4* askIP (SPLArray_char* port) {
   getip = tmp_6;
   numChars_1 = ggets(getip);
   dataAddr = NULL;
+  if ((numChars_1 < 1)) {
+    free(getip);
+    
+    return dataAddr;
+  }
+  (getip->arr[(numChars_1 - 1)]) = ((char) 0);
   if ((!(numChars_1 == 1))) {
     dataAddr = get_address4(getip, port);
   } else {

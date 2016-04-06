@@ -4,10 +4,8 @@
 #include <stdbool.h>
 #include <stdlib.h>
 #include <assert.h>
-#include <fcntl.h>
 #include <netinet/in.h>
-#include <string.h>
-
+#include <fcntl.h>
 /*
  * Preloaded Code
  */
@@ -706,23 +704,26 @@ int recvDataConnection (int cmdFd_3) {
   fd_14 = create_socket(PF_INET, SOCK_STREAM, IPPROTO_TCP);
   if ((fd_14 == (-1))) {
     free(resp);
-     return (-1);
+    
+    return (-1);
   }
   portArray = copy_byte_slice(resp, 5, 10);
   free(resp);
-   
+  
   addr = get_address4(NULL, portArray);
   free(portArray);
   
   if ((addr == NULL)) {
-     return (-1);
+    return (-1);
   }
   tmp_25 = connect4(fd_14, addr);
   if (tmp_25) {
     free(addr);
+    
     return fd_14;
   } else {
     free(addr);
+    
     closing = gclose(fd_14);
     return (-1);
   }
