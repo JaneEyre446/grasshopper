@@ -4,8 +4,8 @@
 #include <stdbool.h>
 #include <stdlib.h>
 #include <assert.h>
-#include <fcntl.h>
 #include <netinet/in.h>
+#include <fcntl.h>
 
 /*
  * Preloaded Code
@@ -476,7 +476,7 @@ bool checkServerResponseUSER (SPLArray_char* response_1) {
   int ack_1;
   
   ack_1 = atoiG(response_1);
-  if ((((((ack_1 == 200) || (ack_1 == 230)) || (ack_1 == 234)) || (ack_1 == 300)) || (ack_1 == 331))) {
+  if (((((ack_1 == 200) || (ack_1 == 230)) || (ack_1 == 234)) || (ack_1 == 331))) {
     success_5 = true;
   } else {
     success_5 = false;
