@@ -6,6 +6,7 @@
 #include <assert.h>
 #include <netinet/in.h>
 #include <fcntl.h>
+
 /*
  * Preloaded Code
  */
@@ -530,7 +531,7 @@ bool handleAuth (int cmdFd_2) {
     
     return true;
   } else {
-    (response->arr[0]) = ((char) 52);
+    (response->arr[0]) = ((char) 53);
     (response->arr[1]) = ((char) 51);
     (response->arr[2]) = ((char) 48);
     (response->arr[3]) = ((char) 0);
